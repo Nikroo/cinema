@@ -1,26 +1,46 @@
 package by.itacademy.service.user;
-import by.itacademy.dao.AdminDao;
 import by.itacademy.dao.Dao;
-import by.itacademy.dao.openserver.CinemaDao;
 import by.itacademy.service.util.Hash;
 
 import java.util.List;
 import java.util.Optional;
 
 public class UserService extends Hash {
-    private CinemaDao dao;
+    private Dao dao;
 
-    public UserService(CinemaDao dao) {this.dao = dao;}
-
-    public boolean create(Person person){
-        return dao.create(person);
+    public UserService(Dao dao) {
+        this.dao = dao;
     }
 
-    public Optional<User> checkAccess(String login, String password){
-        User user = dao.checkAccess(login, password);
-        if(validatePassword(password, user.getPassword())){
-            return Optional.of(user);
-        };
-        return  Optional.empty();
+    public boolean create(User user) {
+        return dao.create(user);
+    }
+
+    public void read(String login, String password){
+        User user = dao.read(login, password);
+        System.out.println(user);
+    }
+
+/*    public int checkAccess(String login, String password) {
+
+        Optional<User> optionalUser = dao.read(login, password);
+
+        if (optionalUser.isPresent()){
+            if(validatePassword(password, optionalUser.get().getPassword())){
+                return User.Role.getId();
+            }
+        }
+
+        return -1;
+    }*/
+
+    public void readAll(){
+        List<User> users = dao.readAll();
+        for (User element : users) {
+            System.out.println(element);
     }
 }
+}
+
+//if(validatePassword(password, optionalUser.get().getPassword())){
+

@@ -1,8 +1,7 @@
 package by.itacademy.dao.openserver;
 
-import by.itacademy.dao.AdminDao;
 import by.itacademy.dao.Dao;
-import by.itacademy.service.user.Person;
+import by.itacademy.service.user.User;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,13 +11,14 @@ import java.util.List;
 
 public class OpenServerSqlAdminDao extends AbstractConnection implements Dao {
 
-    public boolean create(Person person) {
+    public boolean create(User user) {
         try {
             PreparedStatement statement = getConnection()
                     .prepareStatement
-                            ("INSERT INTO users (login, password) VALUES (?,?)");
-            statement.setString(1, person.getLogin());
-            statement.setString(2, person.getHash());
+                            ("INSERT INTO users (login, password, role) VALUES (?,?,?)");
+            statement.setString(1, user.getLogin());
+            statement.setString(2, user.getPassword());
+            statement.setInt(3, 3);
             statement.execute();
             return true;
         } catch (MySQLIntegrityConstraintViolationException e) {
@@ -36,23 +36,19 @@ public class OpenServerSqlAdminDao extends AbstractConnection implements Dao {
         return false;
     }
 
-    public Person read(String login, String password) {
-        Person person = null;
+    public User read(String login, String password) {
+        User user = new User();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, login, password, access FROM users where login=?");
+                    .prepareStatement(SQLUser.GET.QUERY);
+
             statement.setString(1, login);
             ResultSet rs = statement.executeQuery();
-            int id;
-            String name;
-            String pass;
-            int access;
-            while (rs.next()) {
-                id = rs.getInt("id");
-                name = rs.getString("login");
-                pass = rs.getString("password");
-                access = rs.getInt("access");
-                person = new Person(id, name, pass, access);
+            if (rs.next()) {
+                user.setId(Integer.parseInt(rs.getString("id")));
+                user.setLogin(login);
+                user.setPassword(rs.getString("password"));
+                user.setRole(new User.Role(rs.getInt("role_id"), rs.getString("name")));
             }
             statement.execute();
         } catch (SQLException throwables) {
@@ -64,11 +60,11 @@ public class OpenServerSqlAdminDao extends AbstractConnection implements Dao {
                 throwables.printStackTrace();
             }
         }
-        return person;
+        return user;
     }
 
 
-    public Person update(Integer id, Person person) {
+    public User update(Integer id, User person) {
         try {
             PreparedStatement statement = getConnection()
                     .prepareStatement("UPDATE users SET login=?, password=? WHERE id=?");
@@ -110,17 +106,18 @@ public class OpenServerSqlAdminDao extends AbstractConnection implements Dao {
         return false;
     }
 
-    public List<Person> readAll() {
-        List<Person> people = new ArrayList<>();
+    public List<User> readAll() {
+        List<User> people = new ArrayList<>();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, login, password, access FROM users");
+                    .prepareStatement(SQLUser.GET_ALL.QUERY);
             ResultSet set = statement.executeQuery();
             while (set.next()) {
-                people.add(new Person(set.getInt("id"),
-                        set.getString("login"),
-                        set.getString("password"),
-                        set.getInt("access")));
+                people.add(
+                        new User(set.getInt(1),
+                        set.getString(2),
+                        set.getString(3),
+                        new User.Role(set.getInt(4), set.getString(5))));
             }
             statement.execute();
         } catch (SQLException throwables) {
@@ -134,4 +131,19 @@ public class OpenServerSqlAdminDao extends AbstractConnection implements Dao {
         }
         return people;
     }
+
+    enum SQLUser {
+        GET_ALL("SELECT users.id, users.login, users.password, roles.role_id, roles.name FROM users LEFT JOIN roles ON users.role = roles.role_id"),
+        GET("SELECT users.id, users.login, users.password, roles.role_id, roles.name FROM users LEFT JOIN roles ON users.role = roles.role_id WHERE users.login = (?)"),
+        INSERT("INSERT INTO users (login, password, role) VALUES (?,?,?)"),
+        DELETE("DELETE FROM users WHERE id = (?) AND login = (?) AND password = (?) RETURNING id"),
+        UPDATE("UPDATE users SET password = (?) WHERE id = (?) RETURNING id");
+
+        String QUERY;
+
+        SQLUser(String QUERY) {
+            this.QUERY = QUERY;
+        }
+    }
+
 }

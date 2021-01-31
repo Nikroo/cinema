@@ -1,12 +1,9 @@
 package by.itacademy;
 
 
-import by.itacademy.dao.openserver.CinemaDao;
 import by.itacademy.dao.openserver.OpenServerSqlAdminDao;
-import by.itacademy.service.factory.UserFactory;
 import by.itacademy.service.user.User;
 import by.itacademy.service.util.Hash;
-import by.itacademy.service.user.Person;
 import by.itacademy.service.user.UserService;
 
 import java.util.Optional;
@@ -14,16 +11,23 @@ import java.util.Optional;
 public class Main extends Hash {
     public static void main(String[] args) {
 
-        UserService service = new UserService(new CinemaDao());
+        UserService service = new UserService(new OpenServerSqlAdminDao());
 
-        service.create(new Person("Vania@mail.ru", "1111"));
+        //service.create(new User("Vania@mail.ru", "1111"));
 
-        Optional<User> userOptional = service.checkAccess("Vania@mail.ru", "1111");
+        //service.readAll();
 
-        if(userOptional.isPresent()){
+        service.create(new User("Egor123@yahoo.com", "13698", new User.Role(3,"user")));
+
+        service.read("admin", "123");
+        service.read("Vania@mail.ru", "123");
+
+       // Optional<User> userOptional = service.checkAccess("Vania@mail.ru", "1111");
+
+/*        if(userOptional.isPresent()){
             User user = userOptional.get();
             System.out.println(user);
-        }
+        }*/
 
         //User user = UserFactory.ADMIN.getInstance(1,"Vania@mail.ru", "1111");
 
