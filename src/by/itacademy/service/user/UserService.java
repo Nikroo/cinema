@@ -16,30 +16,35 @@ public class UserService extends Hash {
         return dao.create(user);
     }
 
-    public void read(String login, String password){
-        User user = dao.read(login, password);
-        System.out.println(user);
+    public Optional<User> read(String login){
+        return dao.read(login);
     }
 
-/*    public int checkAccess(String login, String password) {
+    public void remove(String login){
+        dao.delete(login);
+    }
 
-        Optional<User> optionalUser = dao.read(login, password);
-
-        if (optionalUser.isPresent()){
-            if(validatePassword(password, optionalUser.get().getPassword())){
-                return User.Role.getId();
-            }
-        }
-
-        return -1;
-    }*/
+    public void update(String login, User user){
+        dao.update(login, user);
+    }
 
     public void readAll(){
         List<User> users = dao.readAll();
         for (User element : users) {
             System.out.println(element);
+        }
     }
-}
+
+    public int checkAccess(String login, String password) {
+        Optional<User> optionalUser = dao.read(login);
+
+        if (optionalUser.isPresent()){
+            if(validatePassword(password, optionalUser.get().getPassword())){
+                return optionalUser.get().getRole().getId();
+            }
+        }
+        return -1;
+    }
 }
 
 //if(validatePassword(password, optionalUser.get().getPassword())){

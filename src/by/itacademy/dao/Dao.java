@@ -1,12 +1,12 @@
 package by.itacademy.dao;
 
-import by.itacademy.service.user.User;
 import java.util.List;
+import java.util.Optional;
 
-public interface Dao {
-    boolean create(User person);
-    User read(String login, String pass);
-    User update(Integer id, User person);
+public interface Dao<T> {
+    boolean create(T name);
+    Optional<T> read(String name);
+    void update(String login, T name);
     boolean delete(String login);
-    List<User> readAll();
+    List<T> readAll();
 }

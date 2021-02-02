@@ -1,21 +1,82 @@
 package by.itacademy.service.film;
 
-import by.itacademy.service.user.User;
-
 public class Ticket {
     private int id;
-    private User user;
-    private Film film;
+    private int userId;
+    private int filmId;
     private int place;
     private int price;
     private boolean isSold;
 
-    public Ticket(int id, User user, Film film, int place, int price, boolean isSold) {
+    public Ticket() {
+    }
+
+    public Ticket(int userId, int filmId, int place, int price, boolean isSold) {
         this.id = id;
-        this.user = user;
-        this.film = film;
+        this.userId = userId;
+        this.filmId = filmId;
         this.place = place;
         this.price = price;
         this.isSold = isSold;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int userId() {
+        return userId;
+    }
+
+    public void setUser(int userId) {
+        this.userId = userId;
+    }
+
+    public int getFilmId() {
+        return filmId;
+    }
+
+    public void setFilmId(int filmId) {
+        this.filmId = filmId;
+    }
+
+    public int getPlace() {
+        return place;
+    }
+
+    public void setPlace(int place) {
+        this.place = place;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
+    }
+
+    public boolean isSold() {
+        return isSold;
+    }
+
+    public void setSold(boolean sold) {
+        isSold = sold;
+    }
+
+    @Override
+    public String toString() {
+        return "Ticket{" +
+                "id=" + id +
+                ", user=" + userId +
+                ", film=" + filmId +
+                ", place=" + place +
+                ", price=" + price +
+                ", isSold=" + isSold +
+                '}';
     }
 }

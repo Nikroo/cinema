@@ -1,59 +1,72 @@
 package by.itacademy;
 
 
-import by.itacademy.dao.openserver.OpenServerSqlAdminDao;
-import by.itacademy.service.user.User;
+import by.itacademy.dao.openserver.FilmDAO;
+import by.itacademy.dao.openserver.UserDAO;
+import by.itacademy.service.film.Film;
+import by.itacademy.service.film.FilmService;
+import by.itacademy.service.film.Ticket;
+import by.itacademy.service.film.TicketService;
 import by.itacademy.service.util.Hash;
 import by.itacademy.service.user.UserService;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main extends Hash {
     public static void main(String[] args) {
 
-        UserService service = new UserService(new OpenServerSqlAdminDao());
+        UserService userService = new UserService(new UserDAO());
+        //service.create(new User("Anna@yandex.ru", "1988", new User.Role(1,"admin")));
+        //service.update("Anna@yandex.ru", new User("Kirill@yandex.ru", "1988", new User.Role(1,"admin")));
+        System.out.println(userService.checkAccess("Kirill@yandex.ru", "1988"));
 
         //service.create(new User("Vania@mail.ru", "1111"));
-
         //service.readAll();
 
-        service.create(new User("Egor123@yahoo.com", "13698", new User.Role(3,"user")));
+/*        Ticket ticket = new Ticket(1,1,1,1,true);
+        LocalDateTime today = LocalDateTime.now();
 
-        service.read("admin", "123");
-        service.read("Vania@mail.ru", "123");
+        List<Ticket> tickets = new ArrayList<>((Arrays.asList(ticket)));
 
-       // Optional<User> userOptional = service.checkAccess("Vania@mail.ru", "1111");
+        FilmService filmService = new FilmService();
 
-/*        if(userOptional.isPresent()){
-            User user = userOptional.get();
-            System.out.println(user);
-        }*/
+        LocalDateTime dogville = LocalDateTime.of(2003, Month.APRIL, 30, 12, 0);
+        LocalDateTime cuckoo = LocalDateTime.of(1975, Month.MARCH, 01, 12, 0);
 
-        //User user = UserFactory.ADMIN.getInstance(1,"Vania@mail.ru", "1111");
+        //filmService.create(new Film("Titanic", today, tickets));
+        filmService.create(new Film("Dogville", dogville, tickets));
+        System.out.println(filmService.read("Dogville"));
+
+        if(filmService.read("Titanic").isPresent()){
+            Film titanic = filmService.read("Titanic").get();
+        }
 
 
-        /*System.out.println(service.addUser(new Person("Vania@mail.ru", "1111")));
-        System.out.println(service.addUser(new Person("Vania@mail.ru", "1111")));
+        filmService.update("Titanic", new Film("One Flew Over the Cuckoo's", cuckoo, tickets));
+        filmService.remove("Dogville");
+        filmService.readAll();*/
 
-        service.addUser(new Person("Egor123@yahoo.com", "13698"));
-        service.addUser(new Person("Sveta777@mail.ru", "qwerty123"));
+        TicketService ticketService = new TicketService();
 
-        System.out.println(service.removeUser(new Person("Egor123@yahoo.com", "13698")));
+/*        ticketService.create(new Ticket(1,1,1,1,true));
+        ticketService.create(new Ticket(2,2,2,2,false));
+        ticketService.create(new Ticket(3,3,4,5,true));
+        ticketService.create(new Ticket(4,4,4,4,true));
+        ticketService.create(new Ticket(5,5,5,5,true));*/
 
-        Person person0 = new Person("Makar@tut.by", "0000");
-        service.addUser(person0);
-        person0 = service.selectUser("Makar@tut.by", "0000");
-        service.updateUser(person0.getId(), new Person("Anna@yandex.ru", "1988"));
+        System.out.println(ticketService.read("2"));
 
-        person0 = service.selectUser("Anna@yandex.ru", "1988");
-        System.out.println(person0.getPassword());
+        ticketService.remove("2");
 
-        System.out.println(validatePassword("1988", person0.getPassword()));
-        System.out.println(validatePassword("8891", person0.getPassword()));
+        ticketService.update("5", new Ticket(77,77,77,77,true));
 
-        for (Person element:service.readAll()) {
-            System.out.println(element);
-        }*/
+        ticketService.readAll();
+
+
 
 
     }

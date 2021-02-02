@@ -7,16 +7,14 @@ public class User {
 
     private String login;
     private String password;
-    private String hash = "0";
     private Role role;
 
     public User() {
     }
 
     public User(String login, String password, Role role) {
-        this.hash = Hash.createHash(password);
+        this.password = Hash.createHash(password);
         this.login = login;
-        this.password = password;
         this.role = role;
     }
 
@@ -39,8 +37,6 @@ public class User {
         return password;
     }
 
-    public String getHash() { return hash; }
-
     public Role getRole() {
         return role;
     }
@@ -57,10 +53,6 @@ public class User {
         this.password = password;
     }
 
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
     public void setRole(Role role) {
         this.role = role;
     }
@@ -71,7 +63,6 @@ public class User {
                 "id=" + id +
                 ", login='" + login + '\'' +
                 ", password='" + password + '\'' +
-                ", hash='" + hash + '\'' +
                 ", role=" + role +
                 '}';
     }
