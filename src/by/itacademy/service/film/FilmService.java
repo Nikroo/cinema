@@ -6,8 +6,11 @@ import by.itacademy.dao.openserver.FilmDAO;
 import java.util.List;
 import java.util.Optional;
 
-public class FilmService implements Service {
+public class FilmService {
 
+    private Film film;
+    private Ticket ticket;
+    private TicketService ticketService = new TicketService();
     private Dao dao;
 
     public FilmService() {
@@ -18,23 +21,30 @@ public class FilmService implements Service {
         return dao.create(film);
     }
 
-    public Optional<Film> read(String name){
-        return dao.read(name);
+    public Film read(String name){
+        Optional<Film> optionalFilm = dao.read(name);
+        Film film = new Film();
+        if(optionalFilm.isPresent()){
+            film = optionalFilm.get();
+            film.setTickets(ticketService.readByFilm(film.getId()));
+        }
+        return film;
     }
 
-    public void update(String name, Film film){
-        dao.update(name, film);
+    public void update(int id, Film film){
+        dao.update(id, film);
     }
 
     public void remove(String name){
         dao.delete(name);
     }
 
-    public void readAll() {
-        List<Film> users = dao.readAll();
-        for (Film element : users) {
-            System.out.println(element);
+    public List<Film> readAll() {
+        List<Film> films = dao.readAll();
+        for (Film element : films) {
+            element.setTickets(ticketService.readByFilm(element.getId()));
         }
+        return films;
     }
 
 }

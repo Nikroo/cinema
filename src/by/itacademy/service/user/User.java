@@ -1,13 +1,16 @@
 package by.itacademy.service.user;
 
+import by.itacademy.service.film.Ticket;
 import by.itacademy.service.util.Hash;
+
+import java.util.List;
 
 public class User {
     private Integer id;
-
     private String login;
     private String password;
     private Role role;
+    private List<Ticket> tickets;
 
     public User() {
     }
@@ -57,6 +60,23 @@ public class User {
         this.role = role;
     }
 
+    public List<Ticket> getTickets() {
+        return tickets;
+    }
+
+    public void setTickets(List<Ticket> tickets) {
+        this.tickets = tickets;
+    }
+
+    public void addTicket(Ticket ticket){
+        tickets.add(ticket);
+    }
+
+    public void removeTicket(Ticket ticket){
+        tickets.remove(ticket);
+    }
+
+
     @Override
     public String toString() {
         return "User{" +
@@ -71,9 +91,19 @@ public class User {
         private int id;
         private String name;
 
-        public Role(int id, String name) {
+        public Role(int id) {
             this.id = id;
-            this.name = name;
+            switch (id) {
+                case 1:
+                    name = "admin";
+                    break;
+                case 2:
+                    name = "manager";
+                    break;
+                case 3:
+                    name = "user";
+                    break;
+            }
         }
 
         public int getId() {

@@ -19,11 +19,10 @@ public class Film {
         this.dateTime = dateTime;
     }
 
-    public Film(String name, LocalDateTime dateTime, List<Ticket> tickets) {
+    public Film(String name, LocalDateTime dateTime) {
         this.id = id;
         this.name = name;
         this.dateTime = dateTime;
-        this.tickets = tickets;
     }
 
     public int getId() {

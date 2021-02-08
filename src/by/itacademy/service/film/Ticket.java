@@ -6,18 +6,24 @@ public class Ticket {
     private int filmId;
     private int place;
     private int price;
-    private boolean isSold;
 
     public Ticket() {
     }
 
-    public Ticket(int userId, int filmId, int place, int price, boolean isSold) {
+    public Ticket(int userId, int filmId, int place, int price) {
         this.id = id;
         this.userId = userId;
         this.filmId = filmId;
         this.place = place;
         this.price = price;
-        this.isSold = isSold;
+    }
+
+    public Ticket(int id, int userId, int filmId, int place, int price) {
+        this.id = id;
+        this.userId = userId;
+        this.filmId = filmId;
+        this.place = place;
+        this.price = price;
     }
 
     public int getId() {
@@ -60,23 +66,14 @@ public class Ticket {
         this.price = price;
     }
 
-    public boolean isSold() {
-        return isSold;
-    }
-
-    public void setSold(boolean sold) {
-        isSold = sold;
-    }
-
     @Override
     public String toString() {
-        return "Ticket{" +
+        return "\nTicket{" +
                 "id=" + id +
                 ", user=" + userId +
                 ", film=" + filmId +
                 ", place=" + place +
                 ", price=" + price +
-                ", isSold=" + isSold +
-                '}';
+                "}";
     }
 }

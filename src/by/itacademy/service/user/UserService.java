@@ -24,8 +24,8 @@ public class UserService extends Hash {
         dao.delete(login);
     }
 
-    public void update(String login, User user){
-        dao.update(login, user);
+    public void update(int id, User user){
+        dao.update(id, user);
     }
 
     public void readAll(){
@@ -35,15 +35,15 @@ public class UserService extends Hash {
         }
     }
 
-    public int checkAccess(String login, String password) {
+    public Optional<User> checkAccess(String login, String password) {
         Optional<User> optionalUser = dao.read(login);
 
         if (optionalUser.isPresent()){
             if(validatePassword(password, optionalUser.get().getPassword())){
-                return optionalUser.get().getRole().getId();
+                return optionalUser;
             }
         }
-        return -1;
+        return optionalUser;
     }
 }
 

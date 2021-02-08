@@ -18,11 +18,11 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         try {
             PreparedStatement statement = getConnection()
                     .prepareStatement
-                            ("INSERT INTO tickets (film, place, price, sold) VALUES (?,?,?,?)");
-            statement.setInt(1, ticket.getFilmId());
-            statement.setInt(2, ticket.getPlace());
-            statement.setInt(3, ticket.getPrice());
-            statement.setBoolean(4, ticket.isSold());
+                            ("INSERT INTO tickets (user, film, place, price) VALUES (?,?,?,?)");
+            statement.setInt(1, ticket.userId());
+            statement.setInt(2, ticket.getFilmId());
+            statement.setInt(3, ticket.getPlace());
+            statement.setInt(4, ticket.getPrice());
             statement.execute();
             return true;
         } catch (MySQLIntegrityConstraintViolationException e) {
@@ -39,22 +39,22 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         }
         return false;
     }
-
-    public Optional<Ticket> read(String place) {
+    @Override
+    public Optional<Ticket> read(String id) {
         Optional<Ticket> optionalFilm;
         Ticket ticket = new Ticket();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, film, place, price, sold FROM tickets WHERE place=?");
+                    .prepareStatement("SELECT id, user, film, place, price FROM tickets WHERE id=?");
 
-            statement.setString(1, place);
+            statement.setString(1, id);
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
                 ticket.setId(rs.getInt("id"));
+                ticket.setUser(rs.getInt("user"));
                 ticket.setFilmId(rs.getInt("film"));
                 ticket.setPlace(rs.getInt("place"));
                 ticket.setPrice(rs.getInt("price"));
-                ticket.setSold(rs.getBoolean("sold"));
             }
             statement.execute();
         } catch (SQLException throwables) {
@@ -71,15 +71,15 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
     }
 
 
-    public void update(String place, Ticket ticket) {
+    public void update(int id, Ticket ticket) {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("UPDATE tickets SET film=?, place=?, price=?, sold=? WHERE place=?");
-            statement.setInt(1, ticket.getFilmId());
-            statement.setInt(2, ticket.getPlace());
-            statement.setInt(3, ticket.getPrice());
-            statement.setBoolean(4, ticket.isSold());
-            statement.setString(5, place);
+                    .prepareStatement("UPDATE tickets SET user=?, film=?, place=?, price=? WHERE id=?");
+            statement.setInt(1, ticket.userId());
+            statement.setInt(2, ticket.getFilmId());
+            statement.setInt(3, ticket.getPlace());
+            statement.setInt(4, ticket.getPrice());
+            statement.setInt(5, id);
             statement.execute();
 
         } catch (SQLException throwables) {
@@ -115,11 +115,10 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
     }
 
     public List<Ticket> readAll() {
-        Ticket ticket = new Ticket();
         List<Ticket> tickets = new ArrayList<>();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, film, place, price, sold FROM tickets");
+                    .prepareStatement("SELECT id, user, film, place, price FROM tickets");
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 tickets.add(
@@ -127,7 +126,63 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
                                 rs.getInt(2),
                                 rs.getInt(3),
                                 rs.getInt(4),
-                                rs.getBoolean(5)));
+                                rs.getInt(5)));
+            }
+            statement.execute();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            try {
+                close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        return tickets;
+    }
+
+    public List<Ticket> readByFilm(int filmId) {
+        List<Ticket> tickets = new ArrayList<>();
+        try {
+            PreparedStatement statement = getConnection()
+                    .prepareStatement("SELECT id, user, film, place, price FROM tickets WHERE film=?");
+            statement.setInt(1, filmId);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                tickets.add(
+                        new Ticket(rs.getInt(1),
+                                rs.getInt(2),
+                                rs.getInt(3),
+                                rs.getInt(4),
+                                rs.getInt(5)));
+            }
+            statement.execute();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            try {
+                close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        return tickets;
+    }
+
+    public List<Ticket> readByUser(int userId) {
+        List<Ticket> tickets = new ArrayList<>();
+        try {
+            PreparedStatement statement = getConnection()
+                    .prepareStatement("SELECT id, user, film, place, price FROM tickets WHERE user=?");
+            statement.setInt(1, userId);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                tickets.add(
+                        new Ticket(rs.getInt(1),
+                                rs.getInt(2),
+                                rs.getInt(3),
+                                rs.getInt(4),
+                                rs.getInt(5)));
             }
             statement.execute();
         } catch (SQLException throwables) {

@@ -47,10 +47,10 @@ public class UserDAO extends AbstractConnection implements Dao<User> {
             statement.setString(1, login);
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
-                user.setId(Integer.parseInt(rs.getString("id")));
-                user.setLogin(login);
+                user.setId(rs.getInt("id"));
+                user.setLogin(rs.getString("login"));
                 user.setPassword(rs.getString("password"));
-                user.setRole(new User.Role(rs.getInt("role_id"), rs.getString("name")));
+                user.setRole(new User.Role(rs.getInt("role_id")));
             }
             statement.execute();
         } catch (SQLException throwables) {
@@ -67,14 +67,14 @@ public class UserDAO extends AbstractConnection implements Dao<User> {
     }
 
 
-    public void update(String login, User user) {
+    public void update(int id, User user) {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("UPDATE users SET login=?, password=?, role=? WHERE login=?");
+                    .prepareStatement("UPDATE users SET login=?, password=?, role=? WHERE id=?");
             statement.setString(1, user.getLogin());
             statement.setString(2, user.getPassword());
             statement.setInt(3, user.getRole().getId());
-            statement.setString(4, login);
+            statement.setInt(4, id);
             statement.execute();
 
         } catch (SQLException throwables) {
@@ -120,7 +120,7 @@ public class UserDAO extends AbstractConnection implements Dao<User> {
                         new User(set.getInt(1),
                         set.getString(2),
                         set.getString(3),
-                        new User.Role(set.getInt(4), set.getString(5))));
+                        new User.Role(set.getInt(4))));
             }
             statement.execute();
         } catch (SQLException throwables) {

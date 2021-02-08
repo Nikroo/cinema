@@ -38,7 +38,7 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
         }
         return false;
     }
-
+    @Override
     public Optional<Film> read(String name) {
         Optional<Film> optionalFilm;
         Film film = new Film();
@@ -49,7 +49,7 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
             statement.setString(1, name);
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
-                film.setId(Integer.parseInt(rs.getString("id")));
+                film.setId(rs.getInt("id"));
                 film.setName(rs.getString("name"));
                 film.setDateTime(rs.getTimestamp("timestamp").toLocalDateTime());
             }
@@ -68,13 +68,13 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
     }
 
 
-    public void update(String name, Film film) {
+    public void update(int id, Film film) {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("UPDATE films SET name=?, timestamp =? WHERE name=?");
+                    .prepareStatement("UPDATE films SET name=?, timestamp =? WHERE id=?");
             statement.setString(1, film.getName());
             statement.setTimestamp(2, Timestamp.valueOf(film.getDateTime()));
-            statement.setString(3, name);
+            statement.setInt(3, id);
             statement.execute();
 
         } catch (SQLException throwables) {
