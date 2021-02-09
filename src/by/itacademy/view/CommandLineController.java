@@ -65,12 +65,10 @@ public class CommandLineController implements Controller {
                     adminMenu();
                     return;
                 case 2:
-                    System.out.println("Manager");
+                    managerMenu();
                     return;
                 case 3:
                     userMenu();
-                    return;
-                case 4:
                     return;
                 default:
                     System.out.println("Incorrect input: " + choice);
@@ -81,27 +79,11 @@ public class CommandLineController implements Controller {
 
     public void signUp() {
         while (true) {
-            System.out.println("\nOrders menu");
-            System.out.println("1. Create a new order");
-            System.out.println("2. Delete an order");
-            System.out.println("3. Show all orders");
-            System.out.println("4. Return to main menu");
-            getChoice();
-            switch (choice) {
-                case "1":
-
-                    break;
-                case "2":
-
-                    break;
-                case "3":
-                    break;
-                case "4":
-                    return;
-                default:
-                    System.out.println("Incorrect input: " + choice);
-                    break;
-            }
+            System.out.println("Enter new login:");
+            String newLogin = scanner.next();
+            System.out.println("Enter password:");
+            String newPassword = scanner.next();
+            userService.create(new User(newLogin, newPassword, new User.Role(3)));
         }
     }
 
@@ -124,7 +106,7 @@ public class CommandLineController implements Controller {
                     updateUser();
                     break;
                 case "3":
-                    System.out.println("Enter the username to be remove!");
+                    System.out.println("Enter films id to be remove!");
                     String login = scanner.next();
                     userService.remove(login);
                     break;
@@ -262,19 +244,14 @@ public class CommandLineController implements Controller {
                     }
                     break;
                 case "2":
-                    String buyTicket = "";
-                    System.out.println("Enter tickets id:");
-                    buyTicket = scanner.next();
-                    ticketService.update(Integer.parseInt(buyTicket), optionalUser.get());
+                    buyTicket(optionalUser.get().getId());
                     break;
                 case "3":
-                    System.out.println("Enter the username to be remove!");
-                    String login = scanner.next();
-                    userService.remove(login);
+                    returnTicket(optionalUser.get().getId());
                     break;
                 case "4":
-                    for (Film element : filmService.readAll()) {
-                        System.out.println(element);
+                    for (Ticket element : ticketService.readByUser(optionalUser.get().getId())) {
+                        System.out.print(element);
                     }
                     break;
                 case "5":
@@ -285,6 +262,69 @@ public class CommandLineController implements Controller {
                     scanner.nextLine();
                     String events = scanner.nextLine();
                     filmService.remove(events);
+                    break;
+                case "7":
+                    return;
+                default:
+                    System.out.println("Incorrect input: " + choice);
+                    break;
+            }
+        }
+    }
+
+    private void returnTicket(int userId) {
+        String returnTicket = "";
+        System.out.println("Enter tickets id to be return!");
+        returnTicket = scanner.next();
+        ticketService.returnTicket(Integer.parseInt(returnTicket), userId);
+    }
+
+    private void buyTicket(int userId) {
+        String buyTicket = "";
+        System.out.println("Enter tickets id:");
+        buyTicket = scanner.next();
+        ticketService.buyTicket(Integer.parseInt(buyTicket), userId);
+    }
+
+    public void managerMenu() {
+        String userId;
+        while (true) {
+            System.out.println("\nManager menu:");
+            System.out.println("1. Show all events");
+            System.out.println("2. Update events");
+            System.out.println("3. Delete events");
+            System.out.println("4. Show users");
+            System.out.println("5. Buy a ticket to a user");
+            System.out.println("6. Return user ticket");
+            System.out.println("7. Exit");
+            getChoice();
+            switch (choice) {
+                case "1":
+                    for (Film element : filmService.readAll()) {
+                        System.out.println(element);
+                    }
+                    break;
+                case "2":
+                    updateEvents();
+                    break;
+                case "3":
+                    System.out.println("Enter the events name to be remove!");
+                    scanner.nextLine();
+                    String events = scanner.nextLine();
+                    filmService.remove(events);
+                    break;
+                case "4":
+                    userService.readAll();
+                    break;
+                case "5":
+                    System.out.println("Enter user id:");
+                    userId = scanner.next();
+                    buyTicket(Integer.parseInt(userId));
+                    break;
+                case "6":
+                    System.out.println("Enter user id:");
+                    userId = scanner.next();
+                    returnTicket(Integer.parseInt(userId));
                     break;
                 case "7":
                     return;

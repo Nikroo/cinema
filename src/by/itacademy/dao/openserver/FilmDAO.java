@@ -89,11 +89,11 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
 
     }
 
-    public boolean delete(String name) {
+    public boolean delete(String id) {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("DELETE FROM films WHERE name = ?");
-            statement.setString(1, name);
+                    .prepareStatement("DELETE FROM films WHERE id = ?");
+            statement.setString(1, id);
             statement.execute();
             return true;
 

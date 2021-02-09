@@ -23,8 +23,9 @@ import java.util.Random;
 public class Main extends Hash {
     public static void main(String[] args) {
         UserService userService = new UserService(new UserDAO());
-        userService.create(new User("Anna@yandex.ru", "1988", new User.Role(1)));
-        userService.create(new User("Kirill@yandex.ru", "1111", new User.Role(2)));
+        //userService.create(new User("Anna@yandex.ru", "1988", new User.Role(1)));
+        //userService.create(new User("Kirill@yandex.ru", "1111", new User.Role(2)));
+        userService.create(new User("manager", "manager", new User.Role(2)));
 
         Controller controller = new CommandLineController(new FilmService());
         controller.start();

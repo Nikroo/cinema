@@ -35,8 +35,9 @@ public class FilmService {
         dao.update(id, film);
     }
 
-    public void remove(String name){
-        dao.delete(name);
+    public void remove(String id){
+        ticketService.deleteByFilm(id);
+        dao.delete(id);
     }
 
     public List<Film> readAll() {

@@ -169,6 +169,26 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         return tickets;
     }
 
+    public boolean deleteByFilm(String filmId) {
+        try {
+            PreparedStatement statement = getConnection()
+                    .prepareStatement("DELETE FROM tickets WHERE film = ?");
+            statement.setString(1, filmId);
+            statement.execute();
+            return true;
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            try {
+                close();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+        return false;
+    }
+
     public List<Ticket> readByUser(int userId) {
         List<Ticket> tickets = new ArrayList<>();
         try {
