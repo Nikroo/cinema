@@ -1,5 +1,7 @@
 package by.itacademy;
 
+import by.itacademy.dao.openserver.FilmDAO;
+import by.itacademy.dao.openserver.TicketDAO;
 import by.itacademy.service.film.Film;
 import by.itacademy.service.film.FilmService;
 import by.itacademy.service.film.Ticket;
@@ -13,7 +15,7 @@ public class FillDb {
     public static void main(String[] args) {
 
 
-        FilmService filmService = new FilmService();
+        FilmService filmService = new FilmService(new FilmDAO());
 
         LocalDateTime date0 = LocalDateTime.of(2021, Month.FEBRUARY, 27, 9, 0);
         LocalDateTime date1 = LocalDateTime.of(2021, Month.FEBRUARY, 27, 12, 0);
@@ -66,7 +68,7 @@ public class FillDb {
 
     private static void setDb(int i) {
 
-        TicketService ticketService = new TicketService();
+        TicketService ticketService = new TicketService(new TicketDAO());
 
         for (int j = 0; j < 10; j++) {
             ticketService.create(new Ticket(-1,i,j, 5));

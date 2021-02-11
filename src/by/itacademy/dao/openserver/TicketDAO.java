@@ -1,6 +1,7 @@
 package by.itacademy.dao.openserver;
 
 import by.itacademy.dao.Dao;
+import by.itacademy.exception.DaoException;
 import by.itacademy.service.film.Ticket;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
@@ -18,7 +19,7 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         try {
             PreparedStatement statement = getConnection()
                     .prepareStatement
-                            ("INSERT INTO tickets (user, film, place, price) VALUES (?,?,?,?)");
+                            (SQLTicket.INSERT.QUERY);
             statement.setInt(1, ticket.userId());
             statement.setInt(2, ticket.getFilmId());
             statement.setInt(3, ticket.getPlace());
@@ -39,13 +40,14 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         }
         return false;
     }
+
     @Override
     public Optional<Ticket> read(String id) {
         Optional<Ticket> optionalFilm;
         Ticket ticket = new Ticket();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, user, film, place, price FROM tickets WHERE id=?");
+                    .prepareStatement(SQLTicket.GET.QUERY);
 
             statement.setString(1, id);
             ResultSet rs = statement.executeQuery();
@@ -70,20 +72,21 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         return optionalFilm;
     }
 
-
-    public void update(int id, Ticket ticket) {
+    @Override
+    public boolean update(int id, Ticket ticket) throws DaoException {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("UPDATE tickets SET user=?, film=?, place=?, price=? WHERE id=?");
+                    .prepareStatement(SQLTicket.UPDATE.QUERY);
             statement.setInt(1, ticket.userId());
             statement.setInt(2, ticket.getFilmId());
             statement.setInt(3, ticket.getPlace());
             statement.setInt(4, ticket.getPrice());
             statement.setInt(5, id);
             statement.execute();
-
+            return true;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            throw new DaoException(DaoException._UPDATE_TICKET_FAILED);
         } finally {
             try {
                 close();
@@ -91,13 +94,13 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
                 throwables.printStackTrace();
             }
         }
-
     }
 
+    @Override
     public boolean delete(String place) {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("DELETE FROM tickets WHERE place = ?");
+                    .prepareStatement(SQLTicket.DELETE.QUERY);
             statement.setString(1, place);
             statement.execute();
             return true;
@@ -114,11 +117,12 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         return false;
     }
 
+    @Override
     public List<Ticket> readAll() {
         List<Ticket> tickets = new ArrayList<>();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, user, film, place, price FROM tickets");
+                    .prepareStatement(SQLTicket.GET_ALL.QUERY);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 tickets.add(
@@ -145,7 +149,7 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         List<Ticket> tickets = new ArrayList<>();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, user, film, place, price FROM tickets WHERE film=?");
+                    .prepareStatement(SQLTicket.READ_BY_FILM.QUERY);
             statement.setInt(1, filmId);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
@@ -172,7 +176,7 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
     public boolean deleteByFilm(String filmId) {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("DELETE FROM tickets WHERE film = ?");
+                    .prepareStatement(SQLTicket.DELETE_BY_FILM.QUERY);
             statement.setString(1, filmId);
             statement.execute();
             return true;
@@ -193,7 +197,7 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         List<Ticket> tickets = new ArrayList<>();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, user, film, place, price FROM tickets WHERE user=?");
+                    .prepareStatement(SQLTicket.READ_BY_USER.QUERY);
             statement.setInt(1, userId);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
@@ -217,16 +221,19 @@ public class TicketDAO extends AbstractConnection implements Dao<Ticket> {
         return tickets;
     }
 
-    enum SQLFilm {
-        GET_ALL("SELECT users.id, users.login, users.password, roles.role_id, roles.name FROM users LEFT JOIN roles ON users.role = roles.role_id"),
-        GET("SELECT users.id, users.login, users.password, roles.role_id, roles.name FROM users LEFT JOIN roles ON users.role = roles.role_id WHERE users.login = (?)"),
-        INSERT("INSERT INTO users (login, password, role) VALUES (?,?,?)"),
-        DELETE("DELETE FROM users WHERE id = (?) AND login = (?) AND password = (?) RETURNING id"),
-        UPDATE("UPDATE users SET password = (?) WHERE id = (?) RETURNING id");
+    enum SQLTicket {
+        GET_ALL("SELECT id, user, film, place, price FROM tickets"),
+        GET("SELECT id, user, film, place, price FROM tickets WHERE id=?"),
+        INSERT("INSERT INTO tickets (user, film, place, price) VALUES (?,?,?,?)"),
+        DELETE("DELETE FROM tickets WHERE place = ?"),
+        READ_BY_FILM("SELECT id, user, film, place, price FROM tickets WHERE film=?"),
+        DELETE_BY_FILM("DELETE FROM tickets WHERE film = ?"),
+        READ_BY_USER("SELECT id, user, film, place, price FROM tickets WHERE user=?"),
+        UPDATE("UPDATE tickets SET user=?, film=?, place=?, price=? WHERE id=?");
 
         String QUERY;
 
-        SQLFilm(String QUERY) {
+        SQLTicket(String QUERY) {
             this.QUERY = QUERY;
         }
     }

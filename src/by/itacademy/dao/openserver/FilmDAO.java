@@ -1,8 +1,10 @@
 package by.itacademy.dao.openserver;
 
 import by.itacademy.dao.Dao;
+import by.itacademy.exception.DaoException;
 import by.itacademy.service.film.Film;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,19 +16,18 @@ import java.util.Optional;
 public class FilmDAO extends AbstractConnection implements Dao<Film> {
 
     @Override
-    public boolean create(Film film) {
+    public boolean create(Film film) throws DaoException {
         Timestamp timestamp = Timestamp.valueOf(film.getDateTime());
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement
-                            ("INSERT INTO films (name, timestamp) VALUES (?,?)");
+                    .prepareStatement(SQLFilm.INSERT.QUERY);
             statement.setString(1, film.getName());
             statement.setTimestamp(2, timestamp);
             statement.execute();
             return true;
         } catch (MySQLIntegrityConstraintViolationException e) {
             System.out.println(e.getMessage());
-            return false;
+            throw new DaoException(DaoException._FILM_NOT_CREATE);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } finally {
@@ -38,13 +39,14 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
         }
         return false;
     }
+
     @Override
-    public Optional<Film> read(String name) {
+    public Optional<Film> read(String name) throws DaoException {
         Optional<Film> optionalFilm;
         Film film = new Film();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, name, timestamp FROM films WHERE name=?");
+                    .prepareStatement(SQLFilm.GET.QUERY);
 
             statement.setString(1, name);
             ResultSet rs = statement.executeQuery();
@@ -56,6 +58,7 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
             statement.execute();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            throw new DaoException(DaoException._UPDATE_FILM_FAILED);
         } finally {
             optionalFilm = Optional.of(film);
             try {
@@ -67,18 +70,22 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
         return optionalFilm;
     }
 
-
-    public void update(int id, Film film) {
+    @Override
+    public boolean update(int id, Film film) throws DaoException {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("UPDATE films SET name=?, timestamp =? WHERE id=?");
+                    .prepareStatement(SQLFilm.UPDATE.QUERY);
             statement.setString(1, film.getName());
             statement.setTimestamp(2, Timestamp.valueOf(film.getDateTime()));
             statement.setInt(3, id);
-            statement.execute();
-
+            int count = statement.executeUpdate();
+            if (count != 1) {
+                throw new DaoException(DaoException._UPDATE_FILM_FAILED);
+            }
+            return true;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            throw new DaoException(DaoException._UPDATE_FILM_FAILED);
         } finally {
             try {
                 close();
@@ -86,19 +93,19 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
                 throwables.printStackTrace();
             }
         }
-
     }
 
-    public boolean delete(String id) {
+    @Override
+    public boolean delete(String id) throws DaoException {
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("DELETE FROM films WHERE id = ?");
+                    .prepareStatement(SQLFilm.DELETE.QUERY);
             statement.setString(1, id);
             statement.execute();
             return true;
-
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            throw new DaoException(DaoException._DELETE_FILM_FAILED);
         } finally {
             try {
                 close();
@@ -106,15 +113,15 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
                 throwables.printStackTrace();
             }
         }
-        return false;
     }
 
+    @Override
     public List<Film> readAll() {
         Film film = new Film();
         List<Film> films = new ArrayList<>();
         try {
             PreparedStatement statement = getConnection()
-                    .prepareStatement("SELECT id, name, timestamp FROM films");
+                    .prepareStatement(SQLFilm.GET_ALL.QUERY);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 films.add(
@@ -136,11 +143,11 @@ public class FilmDAO extends AbstractConnection implements Dao<Film> {
     }
 
     enum SQLFilm {
-        GET_ALL("SELECT users.id, users.login, users.password, roles.role_id, roles.name FROM users LEFT JOIN roles ON users.role = roles.role_id"),
-        GET("SELECT users.id, users.login, users.password, roles.role_id, roles.name FROM users LEFT JOIN roles ON users.role = roles.role_id WHERE users.login = (?)"),
-        INSERT("INSERT INTO users (login, password, role) VALUES (?,?,?)"),
-        DELETE("DELETE FROM users WHERE id = (?) AND login = (?) AND password = (?) RETURNING id"),
-        UPDATE("UPDATE users SET password = (?) WHERE id = (?) RETURNING id");
+        GET_ALL("SELECT id, name, timestamp FROM films"),
+        GET("SELECT id, name, timestamp FROM films WHERE name=?"),
+        INSERT("INSERT INTO films (name, timestamp) VALUES (?,?)"),
+        DELETE("DELETE FROM films WHERE id = ?"),
+        UPDATE("UPDATE films SET name=?, timestamp =? WHERE id=?");
 
         String QUERY;
 

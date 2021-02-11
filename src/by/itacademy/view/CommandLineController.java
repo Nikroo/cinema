@@ -1,33 +1,38 @@
 package by.itacademy.view;
 
-import by.itacademy.dao.openserver.UserDAO;
+import by.itacademy.logging.CinemaLogger;
 import by.itacademy.service.film.Film;
 import by.itacademy.service.film.FilmService;
 import by.itacademy.service.film.Ticket;
 import by.itacademy.service.film.TicketService;
 import by.itacademy.service.user.User;
 import by.itacademy.service.user.UserService;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.logging.Level;
+import static by.itacademy.language.Constant.*;
 
 public class CommandLineController implements Controller {
 
-    private UserService userService = new UserService(new UserDAO());
-    Optional<User> optionalUser;
+    private UserService userService;
     private FilmService filmService;
-    private TicketService ticketService = new TicketService();
+    private TicketService ticketService;
+    Optional<User> optionalUser;
     DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private Scanner scanner = new Scanner(System.in);
     private static String choice = "";
 
-    public CommandLineController(FilmService service) {
-        this.filmService = service;
+    public CommandLineController(UserService userService, FilmService filmService, TicketService ticketService){
+    this.userService = userService;
+    this.filmService = filmService;
+    this.ticketService = ticketService;
     }
 
     public void start() {
+        CinemaLogger.LOGGER.log(Level.INFO,CINEMA_START);
         while (true) {
             System.out.println("\nCinema:");
             System.out.println("1. Sign in");
@@ -41,11 +46,11 @@ public class CommandLineController implements Controller {
                 case "2":
                     signUp();
                     break;
-                case "3":
+                case "0":
                     scanner.close();
                     return;
                 default:
-                    System.out.println("Incorrect input: " + choice);
+                    System.out.println(INCORRECT_INPUT + choice);
                     break;
             }
         }
@@ -53,26 +58,30 @@ public class CommandLineController implements Controller {
 
     public void signIn() {
         while (true) {
-            System.out.println("\nLogin:");
+            System.out.println("\n"+LOGIN);
             String login = scanner.next();
-            System.out.println("Password:");
+            System.out.println(PASSWORD);
             String password = scanner.next();
 
             optionalUser = userService.checkAccess(login, password);
 
-            switch (optionalUser.get().getRole().getId()) {
-                case 1:
-                    adminMenu();
-                    return;
-                case 2:
-                    managerMenu();
-                    return;
-                case 3:
-                    userMenu();
-                    return;
-                default:
-                    System.out.println("Incorrect input: " + choice);
-                    break;
+            if(optionalUser.isPresent()) {
+                switch (optionalUser.get().getRole().getId()) {
+                    case 1:
+                        adminMenu();
+                        return;
+                    case 2:
+                        managerMenu();
+                        return;
+                    case 3:
+                        userMenu();
+                        return;
+                    default:
+                        System.out.println(INCORRECT_INPUT + choice);
+                        break;
+                }
+            }else{
+                break;
             }
         }
     }
@@ -83,75 +92,100 @@ public class CommandLineController implements Controller {
             String newLogin = scanner.next();
             System.out.println("Enter password:");
             String newPassword = scanner.next();
-            userService.create(new User(newLogin, newPassword, new User.Role(3)));
+            if(userService.create(new User(newLogin, newPassword, new User.Role(3)))){
+                System.out.println(USER_REGISTERED_SUCCESSFULLY);
+            }
+            break;
         }
     }
 
     public void adminMenu() {
+        CinemaLogger.LOGGER.log(Level.INFO, optionalUser.get().getLogin()+ ENTERED_ADMIN_MENU);
         while (true) {
-            System.out.println("\nAdmin menu:");
-            System.out.println("1. Show all users");
-            System.out.println("2. Update user");
-            System.out.println("3. Delete user");
-            System.out.println("4. Show all events");
-            System.out.println("5. Update events");
-            System.out.println("6. Delete events");
-            System.out.println("7. Exit");
+            System.out.println(ENTERED_ADMIN_MENU);
+            System.out.println(_1_SHOW_ALL_USERS);
+            System.out.println(_2_UPDATE_USER);
+            System.out.println(_3_DELETE_USER);
+            System.out.println(_4_SHOW_ALL_EVENTS);
+            System.out.println(_5_UPDATE_EVENTS);
+            System.out.println(_6_DELETE_EVENTS);
+            System.out.println(EXIT);
             getChoice();
             switch (choice) {
                 case "1":
-                    userService.readAll();
+                    CinemaLogger.LOGGER.log(Level.INFO, _1_SHOW_ALL_USERS);
+                    for (User element : userService.readAll()) {
+                        System.out.println(element);
+                    }
                     break;
                 case "2":
+                    CinemaLogger.LOGGER.log(Level.INFO, _2_UPDATE_USER);
                     updateUser();
                     break;
                 case "3":
-                    System.out.println("Enter films id to be remove!");
+                    CinemaLogger.LOGGER.log(Level.INFO, _3_DELETE_USER);
+                    System.out.println(USERNAME_TO_REMOVE);
                     String login = scanner.next();
-                    userService.remove(login);
+                    if(userService.remove(login)){
+                        System.out.println(USER_DELETED_SUCCESSFULLY);
+                    }else{
+                        System.out.println(USER_DELETED_FILED);
+                    }
                     break;
                 case "4":
+                    CinemaLogger.LOGGER.log(Level.INFO, _4_SHOW_ALL_EVENTS);
                     for (Film element : filmService.readAll()) {
                         System.out.println(element);
                     }
                     break;
                 case "5":
+                    CinemaLogger.LOGGER.log(Level.INFO, _5_UPDATE_EVENTS);
                     updateEvents();
                     break;
                 case "6":
-                    System.out.println("Enter the events name to be remove!");
+                    CinemaLogger.LOGGER.log(Level.INFO, _6_DELETE_EVENTS);
+                    System.out.println(USERNAME_TO_REMOVE);
                     scanner.nextLine();
                     String events = scanner.nextLine();
                     filmService.remove(events);
                     break;
-                case "7":
+                case "0":
+                    CinemaLogger.LOGGER.log(Level.INFO, EXIT);
                     return;
                 default:
-                    System.out.println("Incorrect input: " + choice);
+                    System.out.println(INCORRECT_INPUT + choice);
                     break;
             }
         }
     }
 
     private void updateUser() {
-        System.out.println("\nUpdate user menu:");
-        System.out.println("Enter the username to be changed?");
+        CinemaLogger.LOGGER.log(Level.INFO, UPDATE_USER_MENU);
+        System.out.println(UPDATE_USER_MENU);
+        System.out.println(USERNAME_TO_BE_CHANGED);
         String login = scanner.next();
-        User tempUser = userService.read(login).get();
+        User tempUser;
+        optionalUser = userService.read(login);
+        if (optionalUser.isEmpty()){
+            return;
+        }else{
+            tempUser = optionalUser.get();
+        }
+
         User changedUser = new User();
         System.out.println(tempUser);
-        System.out.println("Which user parameter should be changed?");
+        System.out.println(WHICH_PARAMETER_CHANGED);
         while (true) {
-            System.out.println("\nUser parameters:");
-            System.out.println("1. login");
-            System.out.println("2. password");
-            System.out.println("3. role");
-            System.out.println("4. exit");
+            System.out.println("\n"+USER_PARAMETERS);
+            System.out.println(_1_LOGIN);
+            System.out.println(_2_PASSWORD);
+            System.out.println(_3_ROLE);
+            System.out.println(EXIT);
             getChoice();
             switch (choice) {
                 case "1":
                     String changedLogin = "";
-                    System.out.println("Enter new login:");
+                    System.out.println(ENTER_NEW_LOGIN);
                     changedLogin = scanner.next();
                     changedUser.setLogin(changedLogin);
                     changedUser.setPassword(tempUser.getPassword());
@@ -160,7 +194,7 @@ public class CommandLineController implements Controller {
                     break;
                 case "2":
                     String changedPassword = "";
-                    System.out.println("Enter new password:");
+                    System.out.println(ENTER_NEW_PASSWORD);
                     changedPassword = scanner.next();
                     User changedPasswordUser = new User(
                             tempUser.getLogin(),
@@ -169,40 +203,46 @@ public class CommandLineController implements Controller {
                     userService.update(tempUser.getId(), changedPasswordUser);
                     break;
                 case "3":
-                    System.out.println("Enter new role:");
+                    System.out.println(ENTER_NEW_ROLE);
+
+                    while (!scanner.hasNextInt()) {
+                        scanner.next();
+                        System.out.println(_1ADMIN_2_MANAGER_3_USER);
+                    }
                     int changedRole = scanner.nextInt();
                     changedUser.setLogin(tempUser.getLogin());
                     changedUser.setPassword(tempUser.getPassword());
                     changedUser.setRole(new User.Role(changedRole));
                     userService.update(tempUser.getId(), changedUser);
                     break;
-                case "4":
+                case "0":
                     return;
                 default:
-                    System.out.println("Incorrect input: " + choice);
+                    System.out.println(INCORRECT_INPUT + choice);
                     break;
             }
         }
     }
 
     private void updateEvents() {
-        System.out.println("\nUpdate events menu:");
-        System.out.println("Enter the events name to be changed?");
+        CinemaLogger.LOGGER.log(Level.INFO, UPDATE_EVENTS_MENU);
+        System.out.println(UPDATE_EVENTS_MENU);
+        System.out.println(EVENTS_TO_CHANGED);
         scanner.nextLine();
         String film = scanner.nextLine();
         Film tempEvents = filmService.read(film);
         Film changedEvents = new Film();
         System.out.println(tempEvents);
-        System.out.println("Which events parameter should be changed?");
+        System.out.println(WHICH_EVENTS_PARAMETER_CHANGED);
         while (true) {
-            System.out.println("\nEvents parameters:");
-            System.out.println("1. name");
-            System.out.println("2. date & time");
-            System.out.println("3. exit");
+            System.out.println(EVENTS_PARAMETERS);
+            System.out.println(_1_NAME);
+            System.out.println(_2_DATE_TIME);
+            System.out.println(EXIT);
             getChoice();
             switch (choice) {
                 case "1":
-                    System.out.println("Enter new name:");
+                    System.out.println(ENTER_NEW_NAME);
                     String changedName = "";
                     scanner.nextLine();
                     changedName = scanner.nextLine();
@@ -211,31 +251,38 @@ public class CommandLineController implements Controller {
                     filmService.update(tempEvents.getId(), changedEvents);
                     break;
                 case "2":
-                    System.out.println("Enter new date & time, format '2011-12-03T10:15:30':");
+                    System.out.println(ENTER_DATE_TIME_FORMAT);
                     String changedDateTime = "";
-                    scanner.nextLine();
-                    changedDateTime = scanner.nextLine();
-                    LocalDateTime date = LocalDateTime.parse(changedDateTime, formatter);
+                    try{
+                        scanner.nextLine();
+                        changedDateTime = scanner.nextLine();
+                        LocalDateTime date = LocalDateTime.parse(changedDateTime, formatter);
+                        changedEvents.setDateTime(date);
+                    }catch(DateTimeParseException e){
+                        System.out.println(WRONG_DATE);
+                        break;
+                    }
                     changedEvents.setName(tempEvents.getName());
-                    changedEvents.setDateTime(date);
                     filmService.update(tempEvents.getId(), changedEvents);
                     break;
-                case "3":
+                case "0":
                     return;
                 default:
-                    System.out.println("Incorrect input: " + choice);
+                    System.out.println(INCORRECT_INPUT + choice);
                     break;
             }
         }
     }
 
     public void userMenu() {
+        CinemaLogger.LOGGER.log(Level.INFO, optionalUser.get().getLogin()+ ENTERED_USER_MENU);
         while (true) {
-            System.out.println("\nUser menu:");
-            System.out.println("1. Show all events");
-            System.out.println("2. Buy tickets");
-            System.out.println("3. Return tickets");
-            System.out.println("4. Show purchased tickets");
+            System.out.println(USER_MENU);
+            System.out.println(_1_SHOW_ALL_EVENTS);
+            System.out.println(_2_BUY_TICKETS);
+            System.out.println(_3_RETURN_TICKETS);
+            System.out.println(_4_SHOW_PURCHASED_TICKETS);
+            System.out.println(EXIT);
             getChoice();
             switch (choice) {
                 case "1":
@@ -254,39 +301,45 @@ public class CommandLineController implements Controller {
                         System.out.print(element);
                     }
                     break;
-                case "5":
-                    updateEvents();
-                    break;
-                case "6":
-                    System.out.println("Enter the events name to be remove!");
-                    scanner.nextLine();
-                    String events = scanner.nextLine();
-                    filmService.remove(events);
-                    break;
-                case "7":
+                case "0":
                     return;
                 default:
-                    System.out.println("Incorrect input: " + choice);
+                    System.out.println(INCORRECT_INPUT + choice);
                     break;
             }
         }
     }
 
     private void returnTicket(int userId) {
-        String returnTicket = "";
         System.out.println("Enter tickets id to be return!");
-        returnTicket = scanner.next();
-        ticketService.returnTicket(Integer.parseInt(returnTicket), userId);
+        while (!scanner.hasNextInt()) {
+            scanner.next();
+            System.out.println("Enter tickets id:");
+        }
+        int returnTicket = scanner.nextInt();
+        if(ticketService.returnTicket(returnTicket, userId)){
+            System.out.println("Ticket "+returnTicket+" was successfully returned!");
+        }else{
+            System.out.println("Check tickets id!");
+        }
     }
 
     private void buyTicket(int userId) {
-        String buyTicket = "";
-        System.out.println("Enter tickets id:");
-        buyTicket = scanner.next();
-        ticketService.buyTicket(Integer.parseInt(buyTicket), userId);
+        System.out.println(ENTER_TICKETS_ID);
+        while (!scanner.hasNextInt()) {
+            scanner.next();
+            System.out.println(ENTER_TICKETS_ID);
+        }
+        int buyTicket = scanner.nextInt();
+        if(ticketService.buyTicket(buyTicket, userId)){
+            System.out.println(TICKET_BUY_SUCCESSFULLY+buyTicket);
+        }else{
+            System.out.println(TICKET_BUY_FILED+buyTicket);
+        }
     }
 
     public void managerMenu() {
+        CinemaLogger.LOGGER.log(Level.INFO, optionalUser.get().getLogin()+ ENTERED_MANAGER_MENU);
         String userId;
         while (true) {
             System.out.println("\nManager menu:");
@@ -326,10 +379,10 @@ public class CommandLineController implements Controller {
                     userId = scanner.next();
                     returnTicket(Integer.parseInt(userId));
                     break;
-                case "7":
+                case "0":
                     return;
                 default:
-                    System.out.println("Incorrect input: " + choice);
+                    System.out.println(INCORRECT_INPUT + choice);
                     break;
             }
         }
@@ -339,5 +392,6 @@ public class CommandLineController implements Controller {
         choice = "";
         choice = scanner.next();
     }
+
 }
 

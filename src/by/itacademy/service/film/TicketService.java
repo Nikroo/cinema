@@ -1,14 +1,20 @@
 package by.itacademy.service.film;
 
+import by.itacademy.exception.DaoException;
 import by.itacademy.dao.openserver.TicketDAO;
+import by.itacademy.logging.CinemaLogger;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+
+import static by.itacademy.language.Constant.*;
 
 public class TicketService {
     private TicketDAO dao;
 
-    public TicketService() {
-        this.dao = new TicketDAO();
+    public TicketService(TicketDAO dao) {
+        this.dao = dao;
     }
 
     public boolean create(Ticket ticket) {
@@ -19,23 +25,37 @@ public class TicketService {
         return dao.read(id);
     }
 
-    public void buyTicket(int id, int userId){
+    public boolean buyTicket(int id, int userId){
         Ticket ticket = read(String.valueOf(id)).get();
         if(ticket.userId()<0){
             ticket.setUser(userId);
-            dao.update(id, ticket);
+            try {
+                if(dao.update(id, ticket)) {
+                    CinemaLogger.LOGGER.log(Level.INFO, TICKET_BUY_SUCCESSFULLY+ " " + ticket.toString());
+                }
+                return true;
+            } catch (DaoException e) {
+                CinemaLogger.LOGGER.log(Level.INFO, TICKET_BUY_FILED + " " + ticket.toString());
+                e.printStackTrace();
+            }
         }else{
-            System.out.println("Place already taken");
+            return false;
         }
+        return false;
     }
 
-    public void returnTicket(int id, int userId){
+    public boolean returnTicket(int id, int userId){
         Ticket ticket = read(String.valueOf(id)).get();
         if(ticket.userId()==userId){
             ticket.setUser(-1);
-            dao.update(id, ticket);
+            try {
+                dao.update(id, ticket);
+            } catch (DaoException e) {
+                e.printStackTrace();
+            }
+            return true;
         }else{
-            System.out.println("Check tickets id!");
+            return false;
         }
     }
 
@@ -43,11 +63,8 @@ public class TicketService {
         dao.delete(place);
     }
 
-    public void readAll() {
-        List<Ticket> tickets = dao.readAll();
-        for (Ticket element : tickets) {
-            System.out.println(element);
-        }
+    public List<Ticket> readAll() {
+         return dao.readAll();
     }
 
     public List<Ticket> readByFilm(int filmId){
